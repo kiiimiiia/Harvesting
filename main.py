@@ -2,6 +2,7 @@ import mysql.connector
 import requests
 from bs4 import BeautifulSoup
 import re
+
 db = mysql.connector.connect(user='root', password='maSliD@1372',
                               host='127.0.0.1',
                               database='test')
