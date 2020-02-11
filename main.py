@@ -39,7 +39,7 @@ response2 = session.get('http://forum.dataak.com/index.php')
 soup = BeautifulSoup(response2.content , 'html.parser')
 soup = BeautifulSoup( soup.find("div", {"id": "content"}).__str__() , 'html.parser')
 ref = soup.select('table tbody td strong a')
-print(ref)
+# print(ref)
 baseUrl = 'http://forum.dataak.com/'
 urls = []
 forums = []
@@ -51,16 +51,53 @@ for el in ref:
 # print(urls)
 # print(forums)
 
+
+
+""" collecting profile urls """
 response_members = session.get("http://forum.dataak.com/memberlist.php")
+soup2 = BeautifulSoup(response_members.content, 'html.parser')
+ref2 = soup2.select('tr td a')
+# print(ref2)
+profile_urls = []
+usernames = []
+for el in ref2:
+    url_temp = ""
+    username = ""
+    url_temp = re.findall(r'"([^"]*)"', el.__str__())[0]
+    username = re.findall(r'>([^"]*)<', el.__str__())[0]
+    if(username == ''):
+        username = re.findall(r'>([^"]*)<', soup2.select('span strong em')[0].__str__())[0]
+    if ("http://forum.dataak.com/member.php?action=profile&amp;" in url_temp):
+        profile_urls.append(url_temp)
+        usernames.append(username)
+#
+# print(profile_urls)
+# print(usernames)
 
+j = 0
+"""collecting user infos"""
+for profile_url in profile_urls:
+    profile_response = session.get(profile_url)
+    soup2 = BeautifulSoup(profile_response.content, 'html.parser')
+    # soup2 = BeautifulSoup(soup.find("fieldset").__str__(), 'html.parser')
+    temp = []
+    temp = soup2.select('tr td span.smalltext')
+    # print(temp)
+    birth_date = ""
+    registry_date=""
+    for el in temp :
+        if(len(el.__str__())>40):
+            registry_date = el.__str__().split('<br/>')[3].split('</strong>')[1].split('<strong>')
+            birth_date = el.__str__().split('<br/>')[4].split('</strong>')[1].split('<strong>')
 
+    sql = "INSERT INTO user (user_name , registry_date , birth_date) VALUES (%s,%s,%s)"
+    val = (usernames[j] ,registry_date[0] ,birth_date[0])
+    mycursor.execute(sql, val)
+    j+=1
 
-
+db.commit()
 
 i = 0
-
-
-
 for url in urls:
     forum_url = baseUrl + url
     f_response = session.get(forum_url)
@@ -79,9 +116,9 @@ for url in urls:
             urls.append(url_temp)
             forums.append(forums_temp)
 
-    soup2 = BeautifulSoup(f_response.content, 'html.parser')
-    ref2 = []
-    ref2 = soup2.select('tr td strong a')
+    # soup2 = BeautifulSoup(f_response.content, 'html.parser')
+    # ref2 = []
+    # ref2 = soup2.select('tr td strong a')
     # main_forum = re.findall(r'\'([^"]*)\'', forum[0].__str__())
     # print(main_forum)
     # sql = "INSERT INTO forum (name) VALUES (%s)"
