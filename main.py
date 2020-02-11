@@ -3,6 +3,12 @@ import requests
 from bs4 import BeautifulSoup
 import re
 
+class posts:
+  def __init__(self, username, title, forum):
+    self.username = username
+    self.title == title
+    self.forum = forum
+
 db = mysql.connector.connect(user='root', password='maSliD@1372',
                               host='127.0.0.1',
                               database='test')
@@ -29,23 +35,66 @@ response = session.post('http://forum.dataak.com/member.php' , data = {'action':
                                                                        })
 print(response.status_code)
 response2 = session.get('http://forum.dataak.com/index.php')
-print(response2.status_code)
+# print(response2.status_code)
 soup = BeautifulSoup(response2.content , 'html.parser')
 soup = BeautifulSoup( soup.find("div", {"id": "content"}).__str__() , 'html.parser')
 ref = soup.select('table tbody td strong a')
 print(ref)
 baseUrl = 'http://forum.dataak.com/'
-url = []
+urls = []
+forums = []
+i = 0
 for el in ref:
-    url.append(re.findall(r'"([^"]*)"', el.__str__()))
-    main_forum = re.findall(r'>([^"]*)<', el.__str__())
-    sql = "INSERT INTO forum (name) VALUES (%s)"
-    val = (main_forum)
-    mycursor.execute(sql, val)
+    urls.append(re.findall(r'"([^"]*)"', el.__str__())[0])
+    forums.append(re.findall(r'>([^"]*)<', el.__str__())[0] )
+#
+# print(urls)
+# print(forums)
 
-    db.commit()
+response_members = session.get("http://forum.dataak.com/memberlist.php")
 
 
+
+
+
+i = 0
+
+
+
+for url in urls:
+    forum_url = baseUrl + url
+    f_response = session.get(forum_url)
+    soup2 = []
+    soup2 = BeautifulSoup(f_response.content, 'html.parser')
+    ref2 = []
+    ref2 = soup2.select('tr td strong a')
+
+    # sub forums
+    for el in ref2:
+        url_temp = ""
+        forums_temp = ""
+        url_temp  = re.findall(r'"([^"]*)"', el.__str__())[0]
+        forums_temp = re.findall(r'>([^"]*)<', el.__str__())[0]
+        if (("forumdisplay.php?fid=" in url_temp ) and len(url_temp) <= 25):
+            urls.append(url_temp)
+            forums.append(forums_temp)
+
+    soup2 = BeautifulSoup(f_response.content, 'html.parser')
+    ref2 = []
+    ref2 = soup2.select('tr td strong a')
+    # main_forum = re.findall(r'\'([^"]*)\'', forum[0].__str__())
+    # print(main_forum)
+    # sql = "INSERT INTO forum (name) VALUES (%s)"
+    # val = (main_forum)
+    # mycursor.execute(sql, val)
+    #
+    # refs = soup2.select('tbody td strong a')
+    # print(refs)
+    # main_forum = re.findall(r'>([^"]*)<', refs.__str__())
+
+print(forums)
+
+# db.commit()
     # for el in ref:
     # print(.split('>'))
 # print(forums)
