@@ -76,6 +76,7 @@ for el in ref2:
 
 j = 0
 """collecting user infos"""
+
 for profile_url in profile_urls:
     profile_response = session.get(profile_url)
     soup2 = BeautifulSoup(profile_response.content, 'html.parser')
@@ -92,9 +93,11 @@ for profile_url in profile_urls:
 
     sql = "INSERT INTO user (user_name , registry_date , birth_date) VALUES (%s,%s,%s)"
     val = (usernames[j] ,registry_date[0] ,birth_date[0])
-    mycursor.execute(sql, val)
+    try:
+        mycursor.execute(sql, val)
+    except:
+        print("duplicate username")
     j+=1
-
 db.commit()
 
 i = 0
@@ -116,6 +119,10 @@ for url in urls:
             urls.append(url_temp)
             forums.append(forums_temp)
 
+    soup2 = BeautifulSoup(f_response.content, 'html.parser')
+    posts_pages = soup2.select('tr.inline_row td.trow1.forumdisplay_regular div span span.smalltext a')
+    print(posts_pages)
+    posts = soup2.select('tr.inline_row td.trow1.forumdisplay_regular div span span.smalltext a')
     # soup2 = BeautifulSoup(f_response.content, 'html.parser')
     # ref2 = []
     # ref2 = soup2.select('tr td strong a')
